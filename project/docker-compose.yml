@@ -25,9 +25,9 @@ services:
     environment:
       DSN: "host=postgres port=5432 user=postgres password=password dbname=users sslmode=disable timezone=UTC connect_timeout=5"
   postgres:
-    image: 'postgres:14.2'
+    image: 'postgres:latest'
     ports:
-      - "5432:5432"
+      - "5430:5432"
     deploy:
       mode: replicated
       replicas: 1

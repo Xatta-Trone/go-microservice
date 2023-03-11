@@ -18,15 +18,11 @@ const PORT = ":80"
 
 var counts int64
 
-// type Config struct {
-// 	DB     *sql.DB
-// 	Models data.Models
-// }
-
-type AppConfig struct {
+type Config struct {
 	DB     *sql.DB
 	Models data.Models
 }
+
 
 func main() {
 	log.Println("Starting auth service")
@@ -40,7 +36,7 @@ func main() {
 
 	// setup config
 
-	app := AppConfig{
+	app := Config{
 		DB:     conn,
 		Models: data.New(conn),
 	}
