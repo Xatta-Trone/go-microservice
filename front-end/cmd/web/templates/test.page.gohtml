@@ -9,7 +9,8 @@
 
                 <a id="bokerBtn" class="btn btn-outline-secondary" href="javascript:void(0)">Test Broker</a>
                 <a id="authBokerBtn" class="btn btn-outline-secondary" href="javascript:void(0)">Test Auth</a>
-                <a id="logBokerBtn" class="btn btn-outline-secondary" href="javascript:void(0)">Log Auth</a>
+                <a id="logBokerBtn" class="btn btn-outline-secondary" href="javascript:void(0)">Test Log</a>
+                <a id="mailBokerBtn" class="btn btn-outline-secondary" href="javascript:void(0)">Test Mail</a>
 
                 <div id="output" class="mt-5" style="outline: 1px solid silver; padding: 2em;">
                     <span class="text-muted">Output shows here...</span>
@@ -39,6 +40,7 @@
     let brokerBtn = document.getElementById("bokerBtn");
     let authBrokerBtn = document.getElementById("authBokerBtn");
     let logBrokerBtn = document.getElementById("logBokerBtn");
+    let mailBrokerBtn = document.getElementById("mailBokerBtn");
     let output = document.getElementById("output");
     let payload = document.getElementById("payload");
     let received = document.getElementById("received");
@@ -127,6 +129,43 @@
                 output.innerHTML += `<br><strong>Error</strong>: ${data.message}`;
             }else {
                 output.innerHTML += `<br><strong>Response from log service</strong>: ${data.message}`;
+            }
+        })
+        .catch(err => {
+             output.innerHTML += `<br>Error <br>: ${err}`;
+        })
+    });
+
+    mailBokerBtn.addEventListener("click",function(){
+        const payloadData = {
+            action: "mail",
+            mail: {
+                from: "hello@begum.com",
+                to: "xatta@asdf.com",
+                subject: "test email",
+                message: "hello world ",
+            }
+        }
+
+        const headers = new Headers();
+        headers.append("Content-Type","application/json");
+
+         const body = {
+            method: "POST",
+            body: JSON.stringify(payloadData),
+            headers: headers
+        }
+
+        fetch("http:\/\/localhost:8080/handle",body)
+        .then((res) => res.json())
+        .then((data) => {
+            payload.innerHTML = JSON.stringify(payloadData,undefined,4);
+            received.innerHTML = JSON.stringify(data,undefined,4);
+            if (data.error){
+                console.log(data.message);
+                output.innerHTML += `<br><strong>Error</strong>: ${data.message}`;
+            }else {
+                output.innerHTML += `<br><strong>Response from mail service</strong>: ${data.message}`;
             }
         })
         .catch(err => {
