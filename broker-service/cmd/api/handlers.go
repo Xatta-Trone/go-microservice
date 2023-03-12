@@ -1,6 +1,7 @@
 package main
 
 import (
+	"broker/event"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -55,9 +56,10 @@ func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
 	case "auth":
 		app.authenticate(w, requestPayload.Auth)
 	case "log":
-		app.logItem(w, requestPayload.Log)
+		app.logEventViaRabbit(w, requestPayload.Log)
 	case "mail":
 		app.SendMail(w, requestPayload.Mail)
+	
 	default:
 		app.errorJSON(w, errors.New("unknown action"))
 	}
@@ -196,4 +198,46 @@ func (app *Config) SendMail(w http.ResponseWriter, mail MailPayload) {
 
 	app.writeJSON(w, http.StatusAccepted, payload)
 
+}
+
+func (app *Config) logEventViaRabbit(w http.ResponseWriter, l LogPayload) {
+
+	err := app.pushToQueue(l.Name, l.Data)
+
+	if err != nil {
+		app.errorJSON(w, err)
+		return
+	}
+
+	// have valid log
+	var payload jsonResponse
+
+	payload.Error = false
+	payload.Message = "logged via rabbitmq"
+
+	app.writeJSON(w, http.StatusAccepted, payload)
+
+}
+
+func (app *Config) pushToQueue(name, message string) error {
+	emitter, err := event.NewEventEmitter(app.Rabbit)
+
+	if err != nil {
+		return err
+	}
+
+	payload := LogPayload{
+		Name: name,
+		Data: message,
+	}
+
+	j, _ := json.MarshalIndent(payload, "", "/t")
+
+	err = emitter.Push(string(j), "log.INFO")
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
