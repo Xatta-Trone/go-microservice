@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"logger-service/data"
+	"net"
 	"net/http"
+	"net/rpc"
 	"runtime"
 	"time"
 
@@ -67,6 +70,15 @@ func main() {
 		Handler: app.routes(),
 	}
 
+	// register the rpc server 
+	err = rpc.Register(new(RPCServer))
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	go app.rpcListen()
+
 	// start the server
 	log.Println("starting logger service")
 	err = srv.ListenAndServe()
@@ -74,6 +86,29 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+func (app *Config) rpcListen() error {
+	log.Println("Starting rpc server on port", rpcPort)
+	listen, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%s", rpcPort))
+
+	if err != nil {
+		return err
+	}
+
+	defer listen.Close()
+
+	for {
+		rpcConn, err := listen.Accept()
+
+		if err != nil {
+			continue
+		}
+
+		go rpc.ServeConn(rpcConn)
+
+	}
+
 }
 
 // func (app *Config) serve() {
